@@ -14,6 +14,9 @@ class BmiAppTests(unittest.TestCase):
         self.assertIn("了解自己的<br><em>健康狀況。</em>", page)
         self.assertIn("計算你的 BMI", page)
         self.assertIn('name="name"', page)
+        self.assertIn('<label for="gender">性別', page)
+        self.assertIn('<option value="" selected>請選擇（選填）</option>', page)
+        self.assertIn('<option value="不願透露"', page)
 
     def test_calculation_and_advice(self):
         response = self.client.post("/", data={"height": "170", "weight": "65"})
@@ -22,6 +25,40 @@ class BmiAppTests(unittest.TestCase):
         self.assertIn("健康體位", page)
         self.assertIn("維持均衡飲食", page)
         self.assertIn("給你的健康建議", page)
+
+    def test_gender_is_optional_and_does_not_change_bmi_or_category(self):
+        for gender in ("", "男性", "女性", "不願透露"):
+            with self.subTest(gender=gender):
+                response = self.client.post(
+                    "/", data={"height": "170", "weight": "65", "gender": gender}
+                )
+                page = response.get_data(as_text=True)
+                self.assertIn("22.5", page)
+                self.assertIn("健康體位", page)
+                if gender:
+                    self.assertIn(f'<p class="result-gender">性別 <strong>{gender}</strong></p>', page)
+                    self.assertIn(f'<option value="{gender}" selected>', page)
+                else:
+                    self.assertNotIn('class="result-gender"', page)
+
+    def test_gender_is_preserved_when_measurements_are_invalid(self):
+        response = self.client.post(
+            "/", data={"height": "", "weight": "65", "gender": "女性"}
+        )
+        page = response.get_data(as_text=True)
+        self.assertIn('<option value="女性" selected>', page)
+        self.assertIn("請輸入大於 0 的有效身高", page)
+        self.assertNotIn("YOUR RESULT", page)
+
+    def test_invalid_gender_is_not_selected_or_displayed(self):
+        response = self.client.post(
+            "/", data={"height": "170", "weight": "65", "gender": "<script>alert(1)</script>"}
+        )
+        page = response.get_data(as_text=True)
+        self.assertIn("22.5", page)
+        self.assertIn('<option value="" selected>', page)
+        self.assertNotIn('class="result-gender"', page)
+        self.assertNotIn("<script>", page)
 
     def test_name_is_shown_with_advice(self):
         response = self.client.post("/", data={"name": "  小明  ", "height": "170", "weight": "65"})

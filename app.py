@@ -4,6 +4,8 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
+GENDER_OPTIONS = ("男性", "女性", "不願透露")
+
 
 def bmi_guidance(bmi):
     if bmi < 18.5:
@@ -44,6 +46,7 @@ def index():
     name_input = ""
     height_input = ""
     weight_input = ""
+    gender_input = ""
     errors = {}
     result = None
 
@@ -51,6 +54,8 @@ def index():
         name_input = request.form.get("name", "").strip()
         height_input = request.form.get("height", "").strip()
         weight_input = request.form.get("weight", "").strip()
+        submitted_gender = request.form.get("gender", "")
+        gender_input = submitted_gender if submitted_gender in GENDER_OPTIONS else ""
         height = parse_positive_number(height_input)
         weight = parse_positive_number(weight_input)
 
@@ -71,12 +76,16 @@ def index():
                 else:
                     displayed_bmi = round(bmi, 1)
                     result = {"bmi": f"{displayed_bmi:.1f}", **bmi_guidance(displayed_bmi)}
+                    if gender_input:
+                        result["gender"] = gender_input
 
     return render_template(
         "index.html",
         name_input=name_input,
         height_input=height_input,
         weight_input=weight_input,
+        gender_input=gender_input,
+        gender_options=GENDER_OPTIONS,
         errors=errors,
         result=result,
     )
