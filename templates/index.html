@@ -57,6 +57,15 @@
                     </div>
                     {% if errors.weight %}<p class="field-error" id="weight-error">{{ errors.weight }}</p>{% endif %}
                   </div>
+                  <div class="field gender-field">
+                    <label for="gender">性別 <span>GENDER（選填）</span></label>
+                    <select id="gender" name="gender">
+                      <option value="" {% if not gender_input %}selected{% endif %}>請選擇（選填）</option>
+                      {% for gender in gender_options %}
+                        <option value="{{ gender }}" {% if gender_input == gender %}selected{% endif %}>{{ gender }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
                 </div>
                 <button type="submit">計算 BMI <span aria-hidden="true">↗</span></button>
               </form>
@@ -73,6 +82,7 @@
                 </div>
                 <div class="result-divider"></div>
                 <span class="result-label">你的體位屬於 <strong>{{ result.label }}</strong></span>
+                {% if result.gender %}<p class="result-gender">性別 <strong>{{ result.gender }}</strong></p>{% endif %}
                 <h2 id="result-title">{% if name_input %}{{ name_input }}，給你的健康建議{% else %}給你的健康建議{% endif %}</h2>
                 <p>{{ result.advice }}</p>
                 <span class="result-decoration" aria-hidden="true">✳</span>
