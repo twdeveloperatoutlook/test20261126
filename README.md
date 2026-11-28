@@ -1,6 +1,6 @@
 # BMI 計算器
 
-使用 Flask 製作的成人 BMI 網頁計算器。輸入身高（公分）和體重（公斤）後，頁面會顯示 BMI（小數點後一位）、體位分類與生活建議。
+使用 Flask 製作的成人 BMI 網頁計算器。輸入身高（公分）和體重（公斤）後，頁面會顯示 BMI（小數點後一位）、體位分類與生活建議。也可選填姓名，讓健康建議顯示姓名。
 
 ## 啟動
 
@@ -32,5 +32,12 @@ BMI = 體重（公斤）÷ 身高（公尺）²。分類採臺灣成人體位參
 在 GitHub 儲存庫 **Settings → Secrets and variables → Actions** 確認：
 
 - Repository secret `AZURE_CREDENTIALS`：Azure 服務主體的 `clientId`、`clientSecret`、`subscriptionId`、`tenantId` 組成的 JSON。此 Secret 已設定，不要把內容寫進程式碼。
+- Repository variables `AZURE_WEBAPP_NAME` 和 `AZURE_RESOURCE_GROUP`：分別指定 Web App 名稱和資源群組。
 
 請確認該服務主體對 `NTUSTweb00` 具有部署權限（例如該站點的 **Website Contributor**）。推送符合上述條件的 `main` 分支異動，或從 GitHub Actions 手動執行工作流程即可部署。
+
+### PR 測試部署
+
+`.github/workflows/deploy-azure-test.yml` 在以 `main` 為目標的 PR 開啟、更新、重新開啟或編輯時執行測試，並將 PR 與 `main` 的合併結果部署到同一 Web App 的 `test` slot，不會部署到正式環境。請先建立 `test` slot，並確認上述服務主體具有該 slot 的部署權限。所有 PR 共用此 slot，後續部署會覆蓋先前的測試版本。
+
+為避免向外部 fork 提供 Azure 憑證，部署僅適用於來自同一儲存庫的 PR；請確保這些 PR 的提交者可信任，因為流程會執行 PR 程式碼並使用部署憑證。
